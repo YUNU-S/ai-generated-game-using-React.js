@@ -31,6 +31,7 @@ export default function SnakeGame() {
   const dirRef = useRef(dir);
   const snakeRef = useRef(snake);
   const foodRef = useRef(food);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Keep refs updated to avoid dependency issues in setInterval
   useEffect(() => { dirRef.current = dir; }, [dir]);
@@ -46,6 +47,24 @@ export default function SnakeGame() {
     setIsPlaying(true);
   };
 
+  const changeDirection = (newDir: 'UP' | 'DOWN' | 'LEFT' | 'RIGHT') => {
+    const currentDir = dirRef.current;
+    switch (newDir) {
+      case 'UP':
+        if (currentDir.y !== 1) setDir({ x: 0, y: -1 });
+        break;
+      case 'DOWN':
+        if (currentDir.y !== -1) setDir({ x: 0, y: 1 });
+        break;
+      case 'LEFT':
+        if (currentDir.x !== 1) setDir({ x: -1, y: 0 });
+        break;
+      case 'RIGHT':
+        if (currentDir.x !== -1) setDir({ x: 1, y: 0 });
+        break;
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Prevent default scrolling for arrow keys
@@ -55,27 +74,26 @@ export default function SnakeGame() {
 
       if (!isPlaying || gameOver) return;
 
-      const currentDir = dirRef.current;
       switch (e.key) {
         case 'ArrowUp':
         case 'w':
         case 'W':
-          if (currentDir.y !== 1) setDir({ x: 0, y: -1 });
+          changeDirection('UP');
           break;
         case 'ArrowDown':
         case 's':
         case 'S':
-          if (currentDir.y !== -1) setDir({ x: 0, y: 1 });
+          changeDirection('DOWN');
           break;
         case 'ArrowLeft':
         case 'a':
         case 'A':
-          if (currentDir.x !== 1) setDir({ x: -1, y: 0 });
+          changeDirection('LEFT');
           break;
         case 'ArrowRight':
         case 'd':
         case 'D':
-          if (currentDir.x !== -1) setDir({ x: 1, y: 0 });
+          changeDirection('RIGHT');
           break;
       }
     };
@@ -83,6 +101,32 @@ export default function SnakeGame() {
     window.addEventListener('keydown', handleKeyDown, { passive: false });
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isPlaying, gameOver]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+    };
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartRef.current || !isPlaying || gameOver) return;
+
+    const touchEndX = e.touches[0].clientX;
+    const touchEndY = e.touches[0].clientY;
+
+    const dx = touchEndX - touchStartRef.current.x;
+    const dy = touchEndY - touchStartRef.current.y;
+
+    if (Math.abs(dx) > 30 || Math.abs(dy) > 30) {
+      if (Math.abs(dx) > Math.abs(dy)) {
+        changeDirection(dx > 0 ? 'RIGHT' : 'LEFT');
+      } else {
+        changeDirection(dy > 0 ? 'DOWN' : 'UP');
+      }
+      touchStartRef.current = null;
+    }
+  };
 
   useEffect(() => {
     if (!isPlaying || gameOver) return;
@@ -142,7 +186,11 @@ export default function SnakeGame() {
       </div>
 
       {/* Game Board */}
-      <div className="relative p-2 bg-gray-900/50 border-2 border-cyan-500/50 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.2)] backdrop-blur-md">
+      <div 
+        className="relative p-2 bg-gray-900/50 border-2 border-cyan-500/50 rounded-xl shadow-[0_0_30px_rgba(34,211,238,0.2)] backdrop-blur-md touch-none"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+      >
         <div
           className="grid bg-gray-950/80 rounded-lg overflow-hidden"
           style={{
@@ -203,6 +251,7 @@ export default function SnakeGame() {
                 <p className="mt-6 text-gray-400 text-sm font-mono flex gap-4">
                   <span>[W A S D]</span>
                   <span>[ARROWS]</span>
+                  <span className="md:hidden">[SWIPE]</span>
                 </p>
               </>
             )}

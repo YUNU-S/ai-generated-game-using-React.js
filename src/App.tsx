@@ -6,14 +6,12 @@
 import React from 'react';
 import SnakeGame from './components/SnakeGame';
 import MusicPlayer from './components/MusicPlayer';
-import CustomCursor from './components/CustomCursor';
 import SpaceBackground from './components/SpaceBackground';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-[#050510] text-gray-100 font-sans selection:bg-cyan-500/30 overflow-hidden relative flex flex-col items-center justify-center p-4 cursor-none">
+    <div className="min-h-screen bg-[#050510] text-gray-100 font-sans selection:bg-cyan-500/30 overflow-hidden relative flex flex-col items-center justify-center p-4">
       <SpaceBackground />
-      <CustomCursor />
       {/* Background Ambient Glows */}
       <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none z-0" />
       <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-fuchsia-600/10 rounded-full blur-[120px] pointer-events-none z-0" />
